@@ -1,5 +1,3 @@
-const statement = "let x = 3 + 4;";
-
 function isLetter(char: string): boolean {
   return char >= "a" && char <= "z";
 }
@@ -8,7 +6,7 @@ function isWhitespace(char: string): boolean {
   return char === " ";
 }
 
-type TokenType =
+export type TokenType =
   | "LET"
   | "IDENTIFIER"
   | "ASSIGN"
@@ -17,12 +15,12 @@ type TokenType =
   | "SEMICOLON"
   | "EOF";
 
-type Token = {
+export type Token = {
   type: TokenType;
   literal: string;
 };
 
-class Lexer {
+export class Lexer {
   private readonly source: string;
   private position: number = 0;
   private char: string = "";
@@ -87,9 +85,4 @@ class Lexer {
     }
     return identifier;
   }
-}
-
-const lexer = new Lexer(statement);
-for (let token = lexer.next(); token.type !== "EOF"; token = lexer.next()) {
-  console.log(token);
 }
