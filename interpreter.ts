@@ -1,3 +1,5 @@
+import assert from "node:assert";
+
 function isLetter(char: string): boolean {
   return char >= "a" && char <= "z";
 }
@@ -84,5 +86,60 @@ export class Lexer {
       this.read();
     }
     return identifier;
+  }
+}
+
+export type Statement = {
+  identifier: string;
+  expression: string;
+};
+
+export type Program = {
+  statements: Statement[];
+};
+
+export class Parser {
+  private readonly lexer: Lexer;
+  private token: Token;
+
+  constructor(lexer: Lexer) {
+    this.lexer = lexer;
+    this.next();
+  }
+
+  private next(): void {
+    this.token = this.lexer.next();
+  }
+
+  public parse(): Program {
+    const program: Program = { statements: [] };
+    while (this.token.type !== "EOF") {
+      if (this.token.type === "LET") {
+        program.statements.push(this.parseStatement());
+      } else {
+        this.next();
+      }
+    }
+    return program;
+  }
+
+  private parseStatement(): Statement {
+    this.next();
+    const identifier = this.token.literal;
+    this.next();
+    assert(
+      this.token.type === "ASSIGN",
+      `Expected "=", got "${this.token.literal}".`,
+    );
+    this.next();
+    let expression = "";
+    while (this.token.type !== "SEMICOLON") {
+      expression += this.token.literal;
+      this.next();
+    }
+    return {
+      identifier,
+      expression,
+    };
   }
 }

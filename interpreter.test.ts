@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { Lexer, Token } from "./interpreter";
+import { Lexer, Parser, Token } from "./interpreter";
 
 test("Lexer", () => {
   const statement = "let x = 3 + 4;";
@@ -19,5 +19,20 @@ test("Lexer", () => {
     { type: "NUMBER", literal: "4" },
     { type: "SEMICOLON", literal: ";" },
     { type: "EOF", literal: "" },
+  ]);
+});
+
+test("Parser", () => {
+  const program = new Parser(
+    new Lexer(`
+      let x = 3 + 4;
+      let y = 5 * 6;
+      let foo = 42;
+    `),
+  ).parse();
+  expect(program.statements).toEqual([
+    { identifier: "x", expression: "3+4" },
+    { identifier: "y", expression: "5*6" },
+    { identifier: "foo", expression: "42" },
   ]);
 });
