@@ -27,12 +27,67 @@ test("Parser", () => {
     new Lexer(`
       let x = 3 + 4;
       let y = 5 * 6;
-      let foo = 42;
+      let foo = 7;
     `),
   ).parse();
   expect(program.statements).toEqual([
-    { identifier: "x", expression: "3+4" },
-    { identifier: "y", expression: "5*6" },
-    { identifier: "foo", expression: "42" },
+    {
+      identifier: "x",
+      expression: {
+        kind: "INFIX",
+        left: {
+          kind: "ATOM",
+          value: {
+            type: "NUMBER",
+            literal: "3",
+          },
+        },
+        operator: {
+          type: "PLUS",
+          literal: "+",
+        },
+        right: {
+          kind: "ATOM",
+          value: {
+            type: "NUMBER",
+            literal: "4",
+          },
+        },
+      },
+    },
+    {
+      identifier: "y",
+      expression: {
+        kind: "INFIX",
+        left: {
+          kind: "ATOM",
+          value: {
+            type: "NUMBER",
+            literal: "5",
+          },
+        },
+        operator: {
+          type: "ASTERISK",
+          literal: "*",
+        },
+        right: {
+          kind: "ATOM",
+          value: {
+            type: "NUMBER",
+            literal: "6",
+          },
+        },
+      },
+    },
+    {
+      identifier: "foo",
+      expression: {
+        kind: "ATOM",
+        value: {
+          type: "NUMBER",
+          literal: "7",
+        },
+      },
+    },
   ]);
 });

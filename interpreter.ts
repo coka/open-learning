@@ -14,6 +14,7 @@ export type TokenType =
   | "ASSIGN"
   | "NUMBER"
   | "PLUS"
+  | "ASTERISK"
   | "SEMICOLON"
   | "EOF";
 
@@ -44,6 +45,9 @@ export class Lexer {
         break;
       case "+":
         token = { type: "PLUS", literal: this.char };
+        break;
+      case "*":
+        token = { type: "ASTERISK", literal: this.char };
         break;
       case ";":
         token = { type: "SEMICOLON", literal: this.char };
@@ -89,9 +93,21 @@ export class Lexer {
   }
 }
 
+export type Expression =
+  | {
+      kind: "ATOM";
+      value: Token;
+    }
+  | {
+      kind: "INFIX";
+      left: Expression;
+      operator: Token;
+      right: Expression;
+    };
+
 export type Statement = {
   identifier: string;
-  expression: string;
+  expression: Expression;
 };
 
 export type Program = {
@@ -132,14 +148,26 @@ export class Parser {
       `Expected "=", got "${this.token.literal}".`,
     );
     this.next();
-    let expression = "";
-    while (this.token.type !== "SEMICOLON") {
-      expression += this.token.literal;
-      this.next();
-    }
     return {
       identifier,
-      expression,
+      expression: this.parseExpression(),
     };
+  }
+
+  private parseExpression(): Expression {
+    const left = this.token;
+    this.next();
+    const right = this.token;
+    if (right.type === "SEMICOLON") {
+      return { kind: "ATOM", value: left };
+    } else {
+      this.next();
+      return {
+        kind: "INFIX",
+        left: { kind: "ATOM", value: left },
+        operator: right,
+        right: this.parseExpression(),
+      };
+    }
   }
 }
