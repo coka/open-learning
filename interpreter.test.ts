@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { evaluate, Lexer, Parser, Token } from "./interpreter";
+import { evaluate, Expression, Lexer, Parser, Token } from "./interpreter";
 
 function getRemainingTokens(l: Lexer): Token[] {
   let token = l.next();
@@ -134,6 +134,30 @@ test("Parser", () => {
       },
     },
   ]);
+});
+
+/**
+ * Pretty-prints expressions to allow for simple string comparisons in tests.
+ */
+function display(expression: Expression): string {
+  switch (expression.kind) {
+    case "ATOM":
+      return expression.value.literal;
+    case "INFIX":
+      return `(${display(expression.left)} ${
+        expression.operator.literal
+      } ${display(expression.right)})`;
+  }
+}
+
+test.each([
+  ["1", "1"],
+  ["3 + 4", "(3 + 4)"],
+  ["3 + 4 * 5", "(3 + (4 * 5))"],
+  ["a * b - 1 / a", "(a * (b - (1 / a)))"],
+])("%s :: %s", (a, b) => {
+  const expression = new Parser(new Lexer(a)).parse().statements[0].value;
+  expect(display(expression)).toBe(b);
 });
 
 test("evaluate", () => {

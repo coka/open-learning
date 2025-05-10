@@ -9,7 +9,7 @@ function isDigit(char: string): boolean {
 }
 
 function isWhitespace(char: string): boolean {
-  return char === " ";
+  return char === " " || char === "\n";
 }
 
 export type TokenType =
@@ -128,10 +128,16 @@ export type Expression =
       right: Expression;
     };
 
-export type Statement = {
+export type ExpressionStatement = {
+  value: Expression;
+};
+
+export type LetStatement = {
   identifier: string;
   expression: Expression;
 };
+
+export type Statement = ExpressionStatement | LetStatement;
 
 export type Program = {
   statements: Statement[];
@@ -154,15 +160,17 @@ export class Parser {
     const program: Program = { statements: [] };
     while (this.token.type !== "EOF") {
       if (this.token.type === "LET") {
-        program.statements.push(this.parseStatement());
-      } else {
+        program.statements.push(this.parseLetStatement());
+      } else if (this.token.type === "SEMICOLON") {
         this.next();
+      } else {
+        program.statements.push(this.parseExpressionStatement());
       }
     }
     return program;
   }
 
-  private parseStatement(): Statement {
+  private parseLetStatement(): LetStatement {
     this.next();
     const identifier = this.token.literal;
     this.next();
@@ -177,11 +185,17 @@ export class Parser {
     };
   }
 
+  private parseExpressionStatement(): ExpressionStatement {
+    return {
+      value: this.parseExpression(),
+    };
+  }
+
   private parseExpression(): Expression {
     const left = this.token;
     this.next();
     const right = this.token;
-    if (right.type === "SEMICOLON") {
+    if (right.type === "SEMICOLON" || right.type === "EOF") {
       return { kind: "ATOM", value: left };
     } else {
       this.next();
