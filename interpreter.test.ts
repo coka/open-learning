@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { Lexer, Parser, Token } from "./interpreter";
+import { evaluate, Lexer, Parser, Token } from "./interpreter";
 
 test("Lexer", () => {
   const statement = "let x = 3 + 4;";
@@ -90,4 +90,11 @@ test("Parser", () => {
       },
     },
   ]);
+});
+
+test("evaluate", () => {
+  const statement = "let x = 3 + 4 * 5;";
+  const lexer = new Lexer(statement);
+  const program = new Parser(lexer).parse();
+  expect(evaluate(program)).toEqual(23);
 });

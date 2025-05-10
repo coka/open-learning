@@ -171,3 +171,36 @@ export class Parser {
     }
   }
 }
+
+export function evaluate(program: Program): number {
+  assert(
+    program.statements.length === 1,
+    "Unable to evaluate programs with multiple statements.",
+  );
+  return evaluateExpression(program.statements[0].expression);
+}
+
+function evaluateExpression(expression: Expression): number {
+  switch (expression.kind) {
+    case "ATOM":
+      assert(
+        expression.value.type === "NUMBER",
+        `Expected number, got "${expression.value.type}".`,
+      );
+      return parseInt(expression.value.literal, 10);
+    case "INFIX":
+      const left = evaluateExpression(expression.left);
+      const right = evaluateExpression(expression.right);
+      const operatorType = expression.operator.type;
+      assert(
+        operatorType === "PLUS" || operatorType === "ASTERISK",
+        `Expected operator, got "${operatorType}".`,
+      );
+      switch (operatorType) {
+        case "PLUS":
+          return left + right;
+        case "ASTERISK":
+          return left * right;
+      }
+  }
+}
