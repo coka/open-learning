@@ -1,25 +1,69 @@
-import { expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { evaluate, Lexer, Parser, Token } from "./interpreter";
 
-test("Lexer", () => {
-  const statement = "let x = 3 + 4;";
-  const lexer = new Lexer(statement);
-  const tokens = [];
-  let token: Token;
-  while (token?.type !== "EOF") {
-    token = lexer.next();
+function getRemainingTokens(l: Lexer): Token[] {
+  let token = l.next();
+  const tokens = [token];
+  while (token.type !== "EOF") {
+    token = l.next();
     tokens.push(token);
   }
-  expect(tokens).toEqual([
-    { type: "LET", literal: "let" },
-    { type: "IDENTIFIER", literal: "x" },
-    { type: "ASSIGN", literal: "=" },
-    { type: "NUMBER", literal: "3" },
-    { type: "PLUS", literal: "+" },
-    { type: "NUMBER", literal: "4" },
-    { type: "SEMICOLON", literal: ";" },
-    { type: "EOF", literal: "" },
-  ]);
+  return tokens;
+}
+
+describe("Lexer", () => {
+  test("expression", () => {
+    const expression = "3 + 4";
+    const lexer = new Lexer(expression);
+    const tokens = getRemainingTokens(lexer);
+    expect(tokens).toEqual([
+      { type: "NUMBER", literal: "3" },
+      { type: "PLUS", literal: "+" },
+      { type: "NUMBER", literal: "4" },
+      { type: "EOF", literal: "" },
+    ]);
+  });
+
+  test("identifiers", () => {
+    const expression = "foo bar let return";
+    const lexer = new Lexer(expression);
+    const tokens = getRemainingTokens(lexer);
+    expect(tokens).toEqual([
+      { type: "IDENTIFIER", literal: "foo" },
+      { type: "IDENTIFIER", literal: "bar" },
+      { type: "LET", literal: "let" },
+      { type: "IDENTIFIER", literal: "return" },
+      { type: "EOF", literal: "" },
+    ]);
+  });
+
+  test("numbers", () => {
+    const expression = "1 23 456";
+    const lexer = new Lexer(expression);
+    const tokens = getRemainingTokens(lexer);
+    expect(tokens).toEqual([
+      { type: "NUMBER", literal: "1" },
+      { type: "NUMBER", literal: "23" },
+      { type: "NUMBER", literal: "456" },
+      { type: "EOF", literal: "" },
+    ]);
+  });
+
+  test("let", () => {
+    const statement = "let x = 3 + 4;";
+    const lexer = new Lexer(statement);
+    const tokens = getRemainingTokens(lexer);
+    expect(tokens).toEqual([
+      { type: "LET", literal: "let" },
+      { type: "IDENTIFIER", literal: "x" },
+      { type: "ASSIGN", literal: "=" },
+      { type: "NUMBER", literal: "3" },
+      { type: "PLUS", literal: "+" },
+      { type: "NUMBER", literal: "4" },
+      { type: "SEMICOLON", literal: ";" },
+      { type: "EOF", literal: "" },
+    ]);
+  });
 });
 
 test("Parser", () => {
@@ -27,7 +71,7 @@ test("Parser", () => {
     new Lexer(`
       let x = 3 + 4;
       let y = 5 * 6;
-      let foo = 7;
+      let foo = 42;
     `),
   ).parse();
   expect(program.statements).toEqual([
@@ -85,7 +129,7 @@ test("Parser", () => {
         kind: "ATOM",
         value: {
           type: "NUMBER",
-          literal: "7",
+          literal: "42",
         },
       },
     },

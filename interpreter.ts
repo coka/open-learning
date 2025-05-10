@@ -4,6 +4,10 @@ function isLetter(char: string): boolean {
   return char >= "a" && char <= "z";
 }
 
+function isDigit(char: string): boolean {
+  return char >= "0" && char <= "9";
+}
+
 function isWhitespace(char: string): boolean {
   return char === " ";
 }
@@ -61,7 +65,7 @@ export class Lexer {
             token = { type: "IDENTIFIER", literal };
           }
         } else {
-          token = { type: "NUMBER", literal: this.char };
+          token = { type: "NUMBER", literal: this.readNumber() };
         }
     }
     this.read();
@@ -77,6 +81,14 @@ export class Lexer {
     }
   }
 
+  private peek(): string {
+    if (this.position === this.source.length) {
+      return "";
+    } else {
+      return this.source[this.position];
+    }
+  }
+
   private eatWhitespace(): void {
     while (isWhitespace(this.char)) {
       this.read();
@@ -85,11 +97,22 @@ export class Lexer {
 
   private readIdentifier(): string {
     let identifier = "";
-    while (!isWhitespace(this.char)) {
+    while (isLetter(this.peek())) {
       identifier += this.char;
       this.read();
     }
+    identifier += this.char;
     return identifier;
+  }
+
+  private readNumber(): string {
+    let number = "";
+    while (isDigit(this.peek())) {
+      number += this.char;
+      this.read();
+    }
+    number += this.char;
+    return number;
   }
 }
 
